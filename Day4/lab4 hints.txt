@@ -1,0 +1,112 @@
+Here are the SQL queries for the tasks you've described:
+
+1. Display the name of the departments and the name of the projects under its control.
+```sql
+SELECT d.department_name, p.project_name
+FROM departments d
+LEFT JOIN projects p ON d.department_id = p.department_id;
+```
+
+2. Display the full data about all the dependence associated with the name of the employee they depend on him/her.
+```sql
+SELECT e.employee_name, d.dependent_name
+FROM employees e
+LEFT JOIN dependents d ON e.employee_id = d.employee_id;
+```
+
+3. Display the Id, name, and location of the projects in Cairo or Alex city.
+```sql
+SELECT project_id, project_name, project_location
+FROM projects
+WHERE project_location IN ('Cairo', 'Alex');
+```
+
+4. Display all the employees in department 30 whose salary is from 1000 to 2000 LE monthly.
+```sql
+SELECT *
+FROM employees
+WHERE department_id = 30
+AND salary BETWEEN 1000 AND 2000;
+```
+
+5. Retrieve the names of all employees in department 10 who work more than or equal to 10 hours per week on the "AL Rabwah" project.
+```sql
+SELECT e.employee_name
+FROM employees e
+INNER JOIN employee_projects ep ON e.employee_id = ep.employee_id
+INNER JOIN projects p ON ep.project_id = p.project_id
+WHERE e.department_id = 10
+AND p.project_name = 'AL Rabwah'
+AND ep.hours_per_week >= 10;
+```
+
+6. Find the names of the employees who are directly supervised by Kamel Mohamed.
+```sql
+SELECT e.employee_name
+FROM employees e
+WHERE e.supervisor_id = (SELECT employee_id FROM employees WHERE employee_name = 'Kamel Mohamed');
+```
+
+7. Retrieve the names of all employees and the names of the projects they are working on, sorted by the project name.
+```sql
+SELECT e.employee_name, p.project_name
+FROM employees e
+LEFT JOIN employee_projects ep ON e.employee_id = ep.employee_id
+LEFT JOIN projects p ON ep.project_id = p.project_id
+ORDER BY p.project_name;
+```
+
+8. For each project located in Cairo City, find the project number, the controlling department name, the department manager last name, address, and birthdate.
+```sql
+SELECT p.project_number, d.department_name, dm.last_name, dm.address, dm.birthdate
+FROM projects p
+INNER JOIN departments d ON p.department_id = d.department_id
+INNER JOIN employees dm ON d.manager_id = dm.employee_id
+WHERE p.project_location = 'Cairo';
+```
+
+9. Display All Data of the managers.
+```sql
+SELECT *
+FROM employees
+WHERE employee_id IN (SELECT DISTINCT manager_id FROM departments);
+```
+
+10. Display All Employees' data and the data of their dependents, even if they have no dependents.
+```sql
+SELECT e.*, d.dependent_name
+FROM employees e
+LEFT JOIN dependents d ON e.employee_id = d.employee_id;
+```
+
+11. For each project, list the project name and the total hours per week (for all employees) spent on that project.
+```sql
+SELECT p.project_name, SUM(ep.hours_per_week) AS total_hours_per_week
+FROM projects p
+LEFT JOIN employee_projects ep ON p.project_id = ep.project_id
+GROUP BY p.project_name;
+```
+
+12. Display the data of the department which has the smallest employee ID over all employees' ID.
+```sql
+SELECT d.*
+FROM departments d
+WHERE d.department_id = (SELECT MIN(department_id) FROM employees);
+```
+
+13. For each department, retrieve the department name and the maximum, minimum, and average salary of its employees.
+```sql
+SELECT d.department_name, MAX(e.salary) AS max_salary, MIN(e.salary) AS min_salary, AVG(e.salary) AS avg_salary
+FROM departments d
+LEFT JOIN employees e ON d.department_id = e.department_id
+GROUP BY d.department_name;
+```
+
+14. For each department, if its average salary is less than the average salary of all employees, display its number, name, and the number of its employees.
+```sql
+SELECT d.department_id, d.department_name, COUNT(e.employee_id) AS num_employees
+FROM departments d
+LEFT JOIN employees e ON d.department_id = e.department_id
+GROUP BY d.department_id, d.department_name
+HAVING AVG(e.salary) < (SELECT AVG(salary) FROM employees);
+```

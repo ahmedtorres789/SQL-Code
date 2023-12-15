@@ -1,0 +1,130 @@
+To complete your tasks, we need to follow these steps:
+
+1. **Restore the Database Backup**: The files you've uploaded are backup files for the databases (`ITI_updated.bak` and `CompanyDb.bak`). These need to be restored to a SQL Server instance. Unfortunately, I can't restore database backups directly. You'll need to restore these backups on a SQL Server instance that you have access to.
+
+2. **Write SQL Functions and Queries**: Once the databases are restored, we can proceed with writing the SQL functions and queries as per your requirements. Since I can't directly interact with your databases, I will provide you with the SQL scripts that you can run on your SQL Server instance.
+
+Let's start by writing the SQL functions and queries based on your requirements for the ITI database:
+
+### ITI Database
+
+1. **Scalar Function for Month Name from Date**:
+   ```sql
+   CREATE FUNCTION GetMonthName(@date DATE)
+   RETURNS NVARCHAR(50)
+   AS
+   BEGIN
+       RETURN DATENAME(MONTH, @date)
+   END
+   ```
+   Test: `SELECT dbo.GetMonthName('2009-12-01')`
+
+2. **Table-Valued Function for Range of Integers**:
+   ```sql
+   CREATE FUNCTION GetRange(@start INT, @end INT)
+   RETURNS @result TABLE(Value INT)
+   AS
+   BEGIN
+       WHILE @start <= @end
+       BEGIN
+           INSERT INTO @result VALUES (@start)
+           SET @start = @start + 1
+       END
+       RETURN
+   END
+   ```
+   
+3. **Table-Valued Function for Department Name and Student Full Name**:
+   ```sql
+   -- Assuming you have a table structure for students and departments
+   CREATE FUNCTION GetStudentDetails(@studentNo INT)
+   RETURNS TABLE
+   AS
+   RETURN 
+   SELECT d.DepartmentName, s.FirstName + ' ' + s.LastName AS FullName
+   FROM Students s
+   JOIN Departments d ON s.DepartmentId = d.DepartmentId
+   WHERE s.StudentNo = @studentNo
+   ```
+
+4. **Scalar Function for Student ID Check**:
+   ```sql
+   CREATE FUNCTION CheckStudentName(@studentId INT)
+   RETURNS NVARCHAR(255)
+   AS
+   BEGIN
+       DECLARE @firstName NVARCHAR(50), @lastName NVARCHAR(50)
+       SELECT @firstName = FirstName, @lastName = LastName
+       FROM Students
+       WHERE StudentId = @studentId
+
+       IF @firstName IS NULL AND @lastName IS NULL
+           RETURN 'First name & last name are null'
+       ELSE IF @firstName IS NULL
+           RETURN 'First name is null'
+       ELSE IF @lastName IS NULL
+           RETURN 'Last name is null'
+       ELSE
+           RETURN 'First name & last name are not null'
+   END
+   ```
+
+5. 
+
+CREATE FUNCTION GetManagerDetails(@dateFormat INT)
+RETURNS TABLE
+AS
+RETURN
+(
+    SELECT 
+        d.DepartmentName,
+        CONCAT(m.FirstName, ' ', m.LastName) AS ManagerName,
+        CASE 
+            WHEN @dateFormat = 1 THEN FORMAT(m.HiringDate, 'yyyy-MM-dd')
+            WHEN @dateFormat = 2 THEN FORMAT(m.HiringDate, 'MM/dd/yyyy')
+            -- Add more formats here as needed
+            ELSE FORMAT(m.HiringDate, 'yyyy-MM-dd') -- Default format
+        END AS HiringDate
+    FROM Managers m
+    JOIN Departments d ON m.DepartmentId = d.DepartmentId
+)
+
+
+6. **Table-Valued Function for Student Name Parts**:
+   ```sql
+   CREATE FUNCTION GetStudentNamePart(@part NVARCHAR(50))
+   RETURNS @result TABLE(NamePart NVARCHAR(255))
+   AS
+   BEGIN
+       IF @part = 'first name'
+           INSERT INTO @result SELECT ISNULL(FirstName, '') FROM Students
+       ELSE IF @part = 'last name'
+           INSERT INTO @result SELECT ISNULL(LastName, '') FROM Students
+       ELSE IF @part = 'full name'
+           INSERT INTO @result SELECT ISNULL(FirstName, '') + ' ' + ISNULL(LastName, '') FROM Students
+       RETURN
+   END
+   ```
+
+7. **Query for Student No and First Name without Last Char**:
+   ```sql
+   SELECT StudentNo, LEFT(FirstName, LEN(FirstName) - 1) AS FirstName
+   FROM Students
+   ```
+
+### Company Database
+
+1. **Function for Employees in a Project**:
+   ```sql
+   -- This requires knowledge of the table structure in the Company database
+   ```
+
+### Bonus Query
+
+2. **Increment in Salary Query**:
+   ```sql
+   SELECT EmployeeId, Salary, Salary * 1.1 AS NewSalary, (Salary * 1.1) - Salary AS Increment
+   FROM Employees
+   ```
+
+You can adapt these scripts based on your actual table and column names in the databases. Once you have restored your databases, you can test these scripts. Let me know if you need further assistance or modifications!

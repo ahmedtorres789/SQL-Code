@@ -1,0 +1,117 @@
+To answer your questions, we will need to create SQL queries that generate views based on the given requirements. These queries assume that the database schema includes tables for projects, departments, employees, and other relevant entities as typically found in a company database. I'll provide a general idea of how these queries might look, although the exact syntax and structure may vary depending on the specific schema of your database.
+
+1. **Project Hours View**
+   ```sql
+   CREATE VIEW ProjectHoursView AS
+   SELECT p.ProjectNumber, p.ProjectName, SUM(h.Hours) AS TotalHours
+   FROM Projects p
+   JOIN HoursWorked h ON p.ProjectNumber = h.ProjectNumber
+   GROUP BY p.ProjectNumber, p.ProjectName;
+   ```
+
+2. **Project Department View**
+   ```sql
+   CREATE VIEW ProjectDepartmentView AS
+   SELECT p.ProjectNumber, p.ProjectName, d.DepartmentName
+   FROM Projects p
+   JOIN Departments d ON p.DepartmentID = d.DepartmentID
+   ORDER BY p.ProjectNumber;
+   ```
+
+3. **Project Employee Count View**
+   ```sql
+   CREATE VIEW ProjectEmployeeCountView AS
+   SELECT p.ProjectName, p.Location, COUNT(e.EmployeeID) AS EmployeeCount
+   FROM Projects p
+   JOIN EmployeeProject ep ON p.ProjectNumber = ep.ProjectNumber
+   JOIN Employees e ON ep.EmployeeID = e.EmployeeID
+   GROUP BY p.ProjectName, p.Location;
+   ```
+
+4. **Department Employee Count View**
+   ```sql
+   CREATE VIEW DepartmentEmployeeCountView AS
+   SELECT d.DepartmentNumber, d.DepartmentName, COUNT(e.EmployeeID) AS EmployeeCount
+   FROM Departments d
+   JOIN Employees e ON d.DepartmentNumber = e.DepartmentNumber
+   GROUP BY d.DepartmentNumber, d.DepartmentName;
+   ```
+
+5. **Employees in Multiple Projects View**
+   ```sql
+   CREATE VIEW EmployeesMultipleProjectsView AS
+   SELECT e.EmployeeName, COUNT(ep.ProjectNumber) AS ProjectCount
+   FROM Employees e
+   JOIN EmployeeProject ep ON e.EmployeeID = ep.EmployeeID
+   GROUP BY e.EmployeeName
+   HAVING COUNT(ep.ProjectNumber) > 1;
+   ```
+
+6. **Average Salary by Department View**
+   ```sql
+   CREATE VIEW AvgSalaryDepartmentView AS
+   SELECT d.DepartmentName, AVG(e.Salary) AS AverageSalary
+   FROM Departments d
+   JOIN Employees e ON d.DepartmentNumber = e.DepartmentNumber
+   GROUP BY d.DepartmentName;
+   ```
+
+7. **Employees and Dependents Age View**
+   ```sql
+   CREATE VIEW EmployeesDependentsAgeView AS
+   SELECT e.EmployeeName, TIMESTAMPDIFF(YEAR, e.BirthDate, CURRENT_DATE()) AS Age
+   FROM Employees e
+   UNION ALL
+   SELECT d.DependentName, TIMESTAMPDIFF(YEAR, d.BirthDate, CURRENT_DATE()) AS Age
+   FROM Dependents d;
+   ```
+
+8. **Employees with Dependents Count View**
+   ```sql
+   CREATE VIEW EmployeesDependentsCountView AS
+   SELECT e.EmployeeName, COUNT(d.DependentID) AS DependentsCount
+   FROM Employees e
+   JOIN Dependents d ON e.EmployeeID = d.EmployeeID
+   GROUP BY e.EmployeeName;
+   ```
+
+9. **User Defined Data Type and New Table**
+   ```sql
+   -- Create user-defined data type
+   CREATE TYPE loc AS NCHAR(2) DEFAULT 'NY' CHECK (value IN ('NY', 'DS', 'KW'));
+
+   -- Create new table
+   CREATE TABLE project2 (
+       Name NVARCHAR(100),
+       Location loc
+   );
+   ```
+
+10. **Highest Average Salary Department Employees View**
+    ```sql
+    CREATE VIEW HighestAvgSalaryDeptEmployeesView AS
+    SELECT e.FirstName, e.LastName, e.Salary, d.DepartmentName
+    FROM Employees e
+    JOIN Departments d ON e.DepartmentNumber = d.DepartmentNumber
+    WHERE d.DepartmentNumber = (
+        SELECT DepartmentNumber
+        FROM Departments
+        GROUP BY DepartmentNumber
+        ORDER BY AVG(Salary) DESC
+        LIMIT 1
+    );
+    ```
+
+11. **Employees Earning Above Department Average Salary View**
+    ```sql
+    CREATE VIEW AboveAvgSalaryEmployeesView AS
+    SELECT e.FirstName, e.LastName, e.Salary
+    FROM Employees e
+    WHERE e.Salary > (
+        SELECT AVG(Salary)
+        FROM Employees
+        WHERE DepartmentNumber = e.DepartmentNumber
+    );
+    ```
+
+These are general templates and may need adjustment based on the actual database structure and field names. You should replace table and column names with the actual names used in your database. If you need help adjusting these queries for your specific database, please provide more details about the database schema.
